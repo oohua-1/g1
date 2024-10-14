@@ -1,0 +1,10 @@
+<aspectj>
+    <weaver>
+        <include within="*"/>
+    </weaver>
+    <aspects>
+        <!-- Specify the aspect class that should be applied -->
+        <aspect name="h2.fw.core.web.aspects.MainStepAspect"/>
+        <aspect name="h2.fw.core.web.aspects.StepExtAspect"/>
+    </aspects>
+</aspectj>

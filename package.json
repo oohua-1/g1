@@ -1,0 +1,40 @@
+{
+  "name": "h2fw",
+  "version": "0.0.97",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "dependencies": {
+    "@appium/doctor": "2.1.10",
+    "@appium/relaxed-caps-plugin": "1.0.6",
+    "@prisma/client": "^5.18.0",
+    "appium": "2.11.3",
+    "appium-device-farm": "9.2.7",
+    "appium-uiautomator2-driver": "3.7.7",
+    "appium-xcuitest-driver": "7.24.16",
+    "axios": "1.7.4",
+    "braces": "3.0.3",
+    "console-control-strings": "^1.1.0",
+    "fill-range": "7.1.1",
+    "glob": "^9.3.5",
+    "ip": "2.0.1",
+    "rimraf": "^6.0.1",
+    "set-blocking": "^2.0.0",
+    "ws": "8.18.0"
+  },
+  "scripts": {
+    "prisma-generate-device-farm": "sudo prisma generate --schema=./node_modules/appium-device-farm/prisma/schema.prisma"
+  },
+  "keywords": [
+    "appium",
+    "appium2.0",
+    "appium-doctor",
+    "appium-device-farm"
+  ],
+  "author": "Anand Bagmar",
+  "license": "ISC",
+  "devDependencies": {
+    "prisma": "^5.18.0"
+  }
+}

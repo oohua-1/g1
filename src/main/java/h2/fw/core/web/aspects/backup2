@@ -1,0 +1,83 @@
+package core.aspects;
+
+import core.aspects.StepExt;
+import io.qameta.allure.AllureLifecycle;
+import io.qameta.allure.model.Status;
+import io.qameta.allure.model.StatusDetails;
+import io.qameta.allure.model.StepResult;
+import org.aspectj.lang.ProceedingJoinPoint;
+import org.aspectj.lang.annotation.Around;
+import org.aspectj.lang.annotation.Aspect;
+import org.aspectj.lang.reflect.MethodSignature;
+
+import java.util.*;
+
+import static io.qameta.allure.util.AspectUtils.getParametersMap;
+import static io.qameta.allure.util.NamingUtils.processNameTemplate;
+@Aspect
+public class StepExtAspect {
+
+    private final AllureLifecycle lifecycle = AllureLifecycleSingleton.getInstance();
+
+    @Around("execution(* *(..)) && @annotation(core.aspects.StepExt)")
+    public Object step(final ProceedingJoinPoint joinPoint) throws Throwable {
+        final MethodSignature methodSignature = (MethodSignature) joinPoint.getSignature();
+        final StepExt step = methodSignature.getMethod().getAnnotation(StepExt.class);
+
+        // Generate step name based on the annotation value or method name
+        final String name = step.value().isEmpty() ? methodSignature.getName()
+                : processNameTemplate(step.value(), getParametersMap(methodSignature, joinPoint.getArgs()));
+
+        // Get current parent step or test case UUID
+        Optional<String> currentParentStepUuid = lifecycle.getCurrentTestCaseOrStep();
+
+        if (currentParentStepUuid.isPresent()) {
+            // Start the substep
+            final String subStepUuid = UUID.randomUUID().toString();
+            final StepResult subStepResult = new StepResult()
+                    .setName(name)
+                    .setStart(System.currentTimeMillis());  // Record the start time
+
+            lifecycle.startStep(currentParentStepUuid.get(), subStepUuid, subStepResult);
+
+            Object proceed = null;
+            try {
+                // Proceed with the method execution
+                proceed = joinPoint.proceed();
+
+                // Mark the substep as passed if no exception occurred
+                lifecycle.updateStep(subStepUuid, s -> s.setStatus(Status.PASSED));
+            } catch (Throwable throwable) {
+                // If an exception occurs, mark the substep as failed and capture error details
+                lifecycle.updateStep(subStepUuid, s -> s.setStatus(Status.FAILED)
+                        .setStatusDetails(new StatusDetails().setMessage(throwable.getMessage())
+                                .setTrace(Arrays.toString(throwable.getStackTrace()))));
+                throw throwable;  // Re-throw the exception
+            } finally {
+                // Record the stop time and update the substep duration
+                lifecycle.updateStep(subStepUuid, s -> s.setStop(System.currentTimeMillis()));  // Record stop time
+                lifecycle.stopStep(subStepUuid);
+            }
+            return proceed;
+        } else {
+            System.out.println("No active test case or parent step found.");
+            return joinPoint.proceed();
+        }
+    }
+
+    private Map<String, Object> getParametersMap(MethodSignature methodSignature, Object[] args) {
+        Map<String, Object> params = new LinkedHashMap<>();
+        String[] parameterNames = methodSignature.getParameterNames();
+        for (int i = 0; i < parameterNames.length; i++) {
+            params.put(parameterNames[i], args[i]);
+        }
+        return params;
+    }
+
+    private String processNameTemplate(String template, Map<String, Object> parameters) {
+        for (Map.Entry<String, Object> entry : parameters.entrySet()) {
+            template = template.replace("{" + entry.getKey() + "}", entry.getValue().toString());
+        }
+        return template;
+    }
+}

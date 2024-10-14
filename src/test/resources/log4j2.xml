@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <properties>
+        <property name="pattern">[%d{HH:mm:ss}] %-5p (%F:%L) - %m%n</property>
+<!--        <property name="disableAnsi">false</property> &lt;!&ndash; Enable ANSI &ndash;&gt;-->
+<!--        <property name="enableAnsi">true</property>   &lt;!&ndash; Enable ANSI &ndash;&gt;-->
+    </properties>
+
+    <!-- Appenders Section -->
+    <appenders>
+        <!-- ReportPortal Appender -->
+        <ReportPortalLog4j2Appender name="ReportPortalAppender">
+            <PatternLayout pattern="${pattern}"/>
+        </ReportPortalLog4j2Appender>
+
+        <!-- Console Appender -->
+        <Console name="ConsoleAppender" target="SYSTEM_OUT">
+            <PatternLayout pattern="${pattern}"/>
+        </Console>
+    </appenders>
+
+    <!-- Loggers Section -->
+    <loggers>
+        <!-- Root Logger: logs only INFO level and above -->
+        <root level="info">
+            <!-- Attach both ReportPortal and Console appenders -->
+            <appender-ref ref="ReportPortalAppender"/>
+            <appender-ref ref="ConsoleAppender"/>
+        </root>
+    </loggers>
+</configuration>

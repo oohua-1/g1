@@ -1,0 +1,90 @@
+{
+  "android": {
+    "adbExecTimeout": 45000,
+    "app": "temp/mda-2.0.2-23.apk",
+    "appWaitDuration": 45000,
+    "automationName": "UiAutomator2",
+    "appPackage": "com.saucelabs.mydemoapp.android",
+    "appActivity": ".view.activities.SplashActivity",
+    "autoGrantPermissions": true,
+    "deviceName": "android",
+    "recordVideo": true,
+    "dontStopAppOnReset": true,
+    "enablePerformanceLogging": true,
+    "eventTimings": true,
+    "newCommandTimeout": 12000,
+    "noSign": true,
+    "platformName": "android",
+    "printPageSourceOnFindFailure": true,
+    "skipUnlock": true,
+    "setAllowInvisibleElements": true,
+    "uiautomator2ServerLaunchTimeout": 70000,
+    "noReset": false,
+    "ignoreHiddenApiPolicyError": true,
+    "df:recordVideo": true,
+    "df:videoTimeLimit": 1800,
+    "df:saveDeviceLogs": false,
+    "fullReset": false
+  },
+  "flutter-android": {
+    "adbExecTimeout": 45000,
+    "app": "temp/app-debug.apk",
+    "appWaitDuration": 45000,
+    "automationName": "Flutter",
+    "autoGrantPermissions": true,
+    "deviceName": "android",
+    "recordVideo": true,
+    "dontStopAppOnReset": true,
+    "enablePerformanceLogging": true,
+    "eventTimings": true,
+    "newCommandTimeout": 12000,
+    "noSign": true,
+    "platformName": "android",
+    "printPageSourceOnFindFailure": true,
+    "skipUnlock": true,
+    "setAllowInvisibleElements": true,
+    "noReset": false,
+    "ignoreHiddenApiPolicyError": true,
+    "df:recordVideo": true,
+    "df:videoTimeLimit": 1800,
+    "df:saveDeviceLogs": false
+  },
+  "ios": {
+    "app": "temp/SauceLabs-Demo-App.Simulator.zip",
+    "automationName": "xcuitest",
+    "udid": "BBC1746B-0229-4C94-B70C-69A550EE0E3C",
+    "noReset": false,
+    "platformName": "ios",
+    "printPageSourceOnFindFailure": true,
+    "autoAcceptAlerts": true,
+    "df:recordVideo": true,
+    "df:videoTimeLimit": 1800,
+    "df:saveDeviceLogs": false,
+    "usePreinstalledWDA": true,
+  },
+  "flutter-ios": {
+    "app": "/Volumes/hoangha/flutter/NewFlutter/demo_app/build/ios/iphonesimulator/Runner.app",
+    "automationName": "FlutterIntegration",
+    "udid": "BBC1746B-0229-4C94-B70C-69A550EE0E3C",
+    "noReset": false,
+    "platformName": "ios",
+    "printPageSourceOnFindFailure": true,
+    "autoAcceptAlerts": true,
+    "df:recordVideo": true,
+    "df:videoTimeLimit": 1800,
+    "df:saveDeviceLogs": false,
+    "usePreinstalledWDA": true,
+  },
+  "serverConfig" : {
+    "server": {
+      "use-plugins": ["device-farm", "relaxed-caps"],
+      "plugin": {
+        "device-farm": {
+          "platform": "android",
+          "skipChromeDownload": true
+        }
+      }
+    }
+  },
+  "appiumServerPath": "./node_modules/appium/build/lib/main.js"
+}

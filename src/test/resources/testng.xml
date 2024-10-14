@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+<suite data-provider-thread-count="1" name="Single Device androidsampleA8">
+    <test thread-count="1" name="android Test">
+        <parameter name="cucumber.features" value="src/test/resources/features/folderA/sampleA8.feature"/>
+        <parameter name="cucumber.glue" value="h2.fw.stepdefinitions,h2.fw.mobileHooks"/>
+        <parameter name="mobileOs" value="android"/>
+        <classes>
+            <class name="h2.fw.runner.mobile.CucumberMobileParallelWithTestNGRunnerTest"/>
+        </classes>
+    </test> <!-- android Test -->
+</suite> <!-- Single Device androidsampleA8 -->
+        https://chatgpt.com/c/a86b64da-8cd0-46ef-870c-828c7dca361a

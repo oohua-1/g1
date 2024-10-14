@@ -1,0 +1,9 @@
+[
+  {
+    "api_name": "postObjects",
+    "api_protocol": "https",
+    "api_method": "POST",
+    "api_path": "/objects",
+    "api_template": "{\"name\": \"{name}\",\n   \"data\": {\n      \"year\": 2019,\n      \"price\": 1849.99,\n      \"CPU model\": \"{model}\",\n      \"Hard disk size\": \"1 TB\"\n   }\n}"
+  }
+]

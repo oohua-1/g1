@@ -1,0 +1,126 @@
+package core.aspects;
+https://chatgpt.com/c/cb5bf5d9-7384-4bdd-9e5e-9d52b369e724
+
+https://chatgpt.com/c/d89920ee-8e8f-4920-bc8d-569f1737cb2b
+import core.aspects.StepExt;
+import io.qameta.allure.AllureLifecycle;
+import io.qameta.allure.model.Status;
+import io.qameta.allure.model.StatusDetails;
+import io.qameta.allure.model.StepResult;
+import org.aspectj.lang.ProceedingJoinPoint;
+import org.aspectj.lang.annotation.Around;
+import org.aspectj.lang.annotation.Aspect;
+import org.aspectj.lang.reflect.MethodSignature;
+
+import java.util.*;
+
+import static io.qameta.allure.util.AspectUtils.getParametersMap;
+import static io.qameta.allure.util.NamingUtils.processNameTemplate;
+@Aspect
+public class StepExtAspect {
+
+    private final AllureLifecycle lifecycle = AllureLifecycleSingleton.getInstance();
+    private static boolean isSubstepScreenshootsEnable = false;
+    private static Stack<Boolean> subStepScreenshotEnableStack = new Stack<>();
+
+    @Around("execution(* *(..)) && @annotation(core.aspects.StepExt)")
+    public Object step(final ProceedingJoinPoint joinPoint) throws Throwable {
+        final MethodSignature methodSignature = (MethodSignature) joinPoint.getSignature();
+        final StepExt step = methodSignature.getMethod().getAnnotation(StepExt.class);
+
+        // Generate step name based on the annotation value or method name
+        final String name = step.value().isEmpty() ? methodSignature.getName()
+                : processNameTemplate(step.value(), getParametersMap(methodSignature, joinPoint.getArgs()));
+
+        // Get current parent step or test case UUID
+        Optional<String> currentParentStepUuid = lifecycle.getCurrentTestCaseOrStep();
+
+        if (currentParentStepUuid.isPresent()) {
+            // Start the substep
+            final String subStepUuid = UUID.randomUUID().toString();
+            final StepResult subStepResult = new StepResult()
+                    .setName(name)
+                    .setStart(System.currentTimeMillis());  // Record the start time
+
+            lifecycle.startStep(currentParentStepUuid.get(), subStepUuid, subStepResult);
+            if(step.sceenshotForSubsteps()){
+                isSubstepScreenshootsEnable = step.sceenshotForSubsteps();
+                subStepScreenshotEnableStack.push(isSubstepScreenshootsEnable);
+            }
+            if (isSubstepScreenshootsEnable) {
+                System.out.println(name);
+            }
+
+            final NeverTakeAllureScreenshotForThisStep noScreenShots = methodSignature.getMethod().getAnnotation(NeverTakeAllureScreenshotForThisStep.class);
+            boolean allureScreenshotAllow = noScreenShots == null;
+            // Initialize list for intercepted errors
+            if (AssertExt.getInterceptedErrors().isEmpty() || AssertExt.getInterceptedErrors().getLast() == null) {
+                AssertExt.getInterceptedErrors().add(new ArrayList<>());
+            }
+
+            Object proceed = null;
+            try {
+                proceed = joinPoint.proceed();
+
+                List<Throwable> stepErrors = AssertExt.getInterceptedErrors().getLast();
+                if(stepErrors.size()>0) {
+                    if (stepErrors.stream().anyMatch(x -> x instanceof Exception)) {
+                        lifecycle.updateStep(subStepUuid, s -> s.setStatus(Status.BROKEN));
+                        throw new RuntimeException("One or more substeps of this step are failed with exceptions");
+                    }
+                    if (stepErrors.stream().anyMatch(x -> x instanceof AssertionError)) {
+                        lifecycle.updateStep(subStepUuid, s -> s.setStatus(Status.BROKEN));
+                        throw new RuntimeException("One or more substeps of this step are failed");
+                    }
+                }else{
+                    // Proceed with the method execution
+//
+//                // Mark the substep as passed if no exception occurred
+                lifecycle.updateStep(subStepUuid, s -> s.setStatus(Status.PASSED));
+                }
+
+            } catch (Throwable throwable) {
+                AssertExt.getInterceptedErrors().getLast().add(throwable);
+                AssertExt.setCountInterceptedErrors(AssertExt.getCountInterceptedErrors() + 1);
+                lifecycle.updateStep(subStepUuid, s -> s.setStatus(Status.BROKEN));
+                // If an exception occurs, mark the substep as failed and capture error details
+                lifecycle.updateStep(subStepUuid, s -> s.setStatus(Status.FAILED)
+                        .setStatusDetails(new StatusDetails().setMessage(throwable.getMessage())
+                                .setTrace(Arrays.toString(throwable.getStackTrace()))));
+                throw throwable;  // Re-throw the exception
+            } finally {
+                if(isSubstepScreenshootsEnable && allureScreenshotAllow){
+                    System.out.println("attach screenshot");
+                }
+                if(step.sceenshotForSubsteps()){
+                    subStepScreenshotEnableStack.pop();
+                    isSubstepScreenshootsEnable = subStepScreenshotEnableStack.size() > 0 ? subStepScreenshotEnableStack.peek() : false;
+
+                }
+                // Record the stop time and update the substep duration
+                lifecycle.updateStep(subStepUuid, s -> s.setStop(System.currentTimeMillis()));  // Record stop time
+                lifecycle.stopStep(subStepUuid);
+            }
+            return proceed;
+        } else {
+            System.out.println("No active test case or parent step found.");
+            return joinPoint.proceed();
+        }
+    }
+
+    private Map<String, Object> getParametersMap(MethodSignature methodSignature, Object[] args) {
+        Map<String, Object> params = new LinkedHashMap<>();
+        String[] parameterNames = methodSignature.getParameterNames();
+        for (int i = 0; i < parameterNames.length; i++) {
+            params.put(parameterNames[i], args[i]);
+        }
+        return params;
+    }
+
+    private String processNameTemplate(String template, Map<String, Object> parameters) {
+        for (Map.Entry<String, Object> entry : parameters.entrySet()) {
+            template = template.replace("{" + entry.getKey() + "}", entry.getValue().toString());
+        }
+        return template;
+    }
+}

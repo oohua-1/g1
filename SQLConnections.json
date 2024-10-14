@@ -1,0 +1,13 @@
+[
+
+  {
+    "name": "LocalDB",
+    "host": "localhost",
+    "port": "3306",
+    "serviceName": "",
+    "schema": "att",
+    "login": "testuser",
+    "password": "testpass",
+    "type": "MYSQL"
+  }
+]
